@@ -16,11 +16,11 @@ wss.on("connection", (ws) => {
 
 ws.on("message", (message) => {
   console.log("📥 Received:", message);
-  
-  // Broadcast ke semua client yang aktif
+
+  // Kirim pesan ke semua client termasuk browser viewer
   wss.clients.forEach(function each(client) {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(message); // kirim data ke viewer juga
+      client.send(message);  // broadcast data asli ke semua client
     }
   });
 });
