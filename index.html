@@ -1,103 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MT5 Realtime Ticker</title>
+  <title>MT5 Live Ticker Data</title>
   <style>
-    body {
-      background-color: #111;
-      color: #0f0;
-      font-family: monospace;
-      padding: 20px;
-    }
-    h1 {
-      color: #0f0;
-    }
-    #status {
-      margin-bottom: 15px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 6px 12px;
-      border: 1px solid #0f0;
-      text-align: center;
-    }
-    th {
-      background-color: #222;
-    }
+    body { background-color: #111; color: #0f0; font-family: monospace; padding: 20px; }
+    h1, #status { margin-bottom: 10px; }
+    table { border-collapse: collapse; width: 100%; background-color: #000; color: #0f0; font-size: 13px; }
+    th, td { border: 1px solid #0f0; padding: 6px 10px; text-align: center; }
+    th { background-color: #222; }
   </style>
 </head>
 <body>
-  <h1>Live Data from MT5 EA</h1>
-  <div id="status">Connecting...</div>
+  <h1>📡 MT5 Real-Time Ticker Viewer</h1>
+  <div id="status">Connecting to WebSocket...</div>
   <table>
     <thead>
       <tr>
         <th>Symbol</th>
+        <th>Time</th>
         <th>Bid</th>
         <th>Ask</th>
         <th>High</th>
         <th>Low</th>
+        <th>Close</th>
+        <th>Spread</th>
         <th>Volume</th>
-        <th>Time</th>
+        <th>Change%</th>
       </tr>
     </thead>
-    <tbody id="ticker-body"></tbody>
+    <tbody id="ticker-data">
+      <tr><td colspan="10">Waiting for data...</td></tr>
+    </tbody>
   </table>
 
   <script>
     const status = document.getElementById("status");
-    const tbody = document.getElementById("ticker-body");
+    const tableBody = document.getElementById("ticker-data");
     const ws = new WebSocket("wss://" + window.location.host);
 
-    const symbolData = {}; // Simpan data terakhir per symbol
-
     ws.onopen = () => {
-      status.textContent = "[Connected to WebSocket]";
+      status.textContent = "✅ Connected to WebSocket Server";
     };
 
     ws.onmessage = (event) => {
-      const json = JSON.parse(event.data);
-      const timestamp = json.timestamp || "";
+      try {
+        const parsed = JSON.parse(event.data);
+        const timestamp = parsed.timestamp || "-";
+        const data = parsed.data && parsed.data.length ? parsed.data[0] : null;
+        if (!data) return;
 
-      (json.data || []).forEach(entry => {
-        symbolData[entry.symbol] = {
-          bid: entry.bid,
-          ask: entry.ask,
-          high: entry.high,
-          low: entry.low,
-          volume: entry.volume,
-          time: timestamp
-        };
-      });
-
-      renderTable();
+        const row = `
+          <tr>
+            <td>${data.symbol}</td>
+            <td>${timestamp}</td>
+            <td>${data.bid}</td>
+            <td>${data.ask}</td>
+            <td>${data.high}</td>
+            <td>${data.low}</td>
+            <td>${data.close}</td>
+            <td>${data.spread}</td>
+            <td>${data.volume}</td>
+            <td>${data.change_percent || "-"}</td>
+          </tr>
+        `;
+        tableBody.innerHTML = row;
+      } catch (e) {
+        console.error("❌ Error parsing message:", e);
+      }
     };
 
     ws.onclose = () => {
-      status.textContent = "[Disconnected]";
+      status.textContent = "⚠️ Disconnected from WebSocket Server";
     };
-
-    function renderTable() {
-      tbody.innerHTML = ""; // Kosongkan dulu
-      for (let symbol in symbolData) {
-        const row = symbolData[symbol];
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${symbol}</td>
-          <td>${row.bid}</td>
-          <td>${row.ask}</td>
-          <td>${row.high}</td>
-          <td>${row.low}</td>
-          <td>${row.volume}</td>
-          <td>${row.time}</td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }
   </script>
 </body>
 </html>
