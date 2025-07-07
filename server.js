@@ -86,13 +86,26 @@ app.post('/api/ticker', (req, res) => {
   try {
     console.log("📡 Ticker data received from MT5 EA:");
     console.log("   Remote IP:", req.ip);
-    console.log("   Data:", JSON.stringify(req.body, null, 2));
+    console.log("   Content-Type:", req.get('Content-Type'));
+    console.log("   Body type:", typeof req.body);
+    console.log("   Raw body:", req.body);
+    
+    // Extra validation for body
+    if (!req.body) {
+      console.error("❌ Empty body received");
+      return res.status(400).json({
+        error: "Empty request body",
+        received: req.body
+      });
+    }
     
     // Validate received data
-    if (!req.body || !req.body.data || !Array.isArray(req.body.data)) {
+    if (!req.body.data || !Array.isArray(req.body.data)) {
+      console.error("❌ Invalid data format:", req.body);
       return res.status(400).json({
         error: "Invalid data format",
-        expected: "JSON with 'data' array property"
+        expected: "JSON with 'data' array property",
+        received: req.body
       });
     }
 
