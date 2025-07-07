@@ -1,4 +1,3 @@
-
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -11,9 +10,9 @@ const wss = new WebSocket.Server({ server });
 
 // Middleware
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname))); // untuk file index.html
 
-// WebSocket broadcast
+// WebSocket broadcast function
 function broadcast(data) {
   wss.clients.forEach(function each(client) {
     if (client.readyState === WebSocket.OPEN) {
@@ -22,25 +21,33 @@ function broadcast(data) {
   });
 }
 
-// HTTP POST endpoint untuk MT5 EA
+// Endpoint MT5 EA untuk kirim data
 app.post("/api/ticker", (req, res) => {
   console.log("📥 Received ticker data via HTTP:", req.body);
-  broadcast(req.body);  // kirim ke semua WebSocket client
+
+  // Validasi sederhana
+  if (!req.body || !req.body.timestamp || !req.body.data) {
+    return res.status(400).json({ status: "error", message: "Invalid format" });
+  }
+
+  // Kirim ke semua client WebSocket
+  broadcast(req.body);
+
   res.json({ status: "ok" });
 });
 
-// Status endpoint
+// Endpoint untuk tes server
 app.get("/api/status", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
 
-// WebSocket
+// WebSocket client handler
 wss.on("connection", (ws) => {
   console.log("✅ WebSocket client connected");
   ws.send(JSON.stringify({ status: "connected" }));
 });
 
-// Jalankan server
+// Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🚀 Server listening on port ${PORT}`);
