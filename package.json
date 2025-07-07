@@ -1,5 +1,6 @@
+
 {
-  "name": "mt5-ws-server",
+  "name": "mt5-wss-server",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
