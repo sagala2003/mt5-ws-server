@@ -14,10 +14,16 @@ app.use(express.static(path.join(__dirname)));
 wss.on("connection", (ws) => {
   console.log("✅ Client connected");
 
-  ws.on("message", (message) => {
-    console.log("📥 Received:", message);
-    ws.send("✅ Server received: " + message);
+ws.on("message", (message) => {
+  console.log("📥 Received:", message);
+  
+  // Broadcast ke semua client yang aktif
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message); // kirim data ke viewer juga
+    }
   });
+});
 
   ws.on("close", () => {
     console.log("❌ Client disconnected");
