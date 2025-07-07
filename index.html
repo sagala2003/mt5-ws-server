@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MT5 WebSocket Stream</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    #log { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Live Data from MT5 EA</h2>
+  <div id="log"></div>
+
+  <script>
+    const ws = new WebSocket("wss://mt5-ws-server-production.up.railway.app");
+    const log = document.getElementById("log");
+
+    ws.onopen = () => {
+      log.innerHTML += "[Connected to WebSocket]\n";
+    };
+
+    ws.onmessage = (event) => {
+      log.innerHTML += event.data + "\n";
+    };
+
+    ws.onclose = () => {
+      log.innerHTML += "[Disconnected]\n";
+    };
+
+    ws.onerror = (e) => {
+      log.innerHTML += "[Error]\n";
+    };
+  </script>
+</body>
+</html>
