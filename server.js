@@ -8,22 +8,23 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Serve static files (like index.html)
+// Serve static files (index.html)
 app.use(express.static(path.join(__dirname)));
 
+// Saat koneksi masuk
 wss.on("connection", (ws) => {
   console.log("✅ Client connected");
 
-ws.on("message", (message) => {
-  console.log("📥 Received:", message);
+  ws.on("message", (message) => {
+    console.log("📥 Received:", message);
 
-  // Kirim pesan ke semua client termasuk browser viewer
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);  // broadcast data asli ke semua client
-    }
+    // Kirim ke semua client (broadcast)
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
   });
-});
 
   ws.on("close", () => {
     console.log("❌ Client disconnected");
